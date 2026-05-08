@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TaskFlow - Smart Task Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="logo">
+        <span>TaskFlow</span>
+        <small data-i18n="tagline">Smart task manager for modern teams</small>
+      </div>
+
+      <div class="header-actions">
+        <button id="lang-toggle" class="btn secondary"></button>
+        <button id="theme-toggle" class="btn secondary" data-i18n="toggleDarkMode">
+          Dark mode
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="sidebar">
+        <h2 data-i18n="filters">Filters</h2>
+
+        <label class="field">
+          <span data-i18n="search">Search</span>
+          <input id="search-input" type="text" placeholder="Search tasks..." />
+        </label>
+
+        <label class="field">
+          <span data-i18n="category">Category</span>
+          <select id="category-filter">
+            <option value="" data-i18n="allCategories">All categories</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span data-i18n="status">Status</span>
+          <select id="status-filter">
+            <option value="" data-i18n="allStatuses">All statuses</option>
+            <option value="todo" data-i18n="statusTodo">To do</option>
+            <option value="in_progress" data-i18n="statusInProgress">In progress</option>
+            <option value="done" data-i18n="statusDone">Done</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span data-i18n="assignee">Assignee</span>
+          <select id="assignee-filter">
+            <option value="" data-i18n="allAssignees">All assignees</option>
+          </select>
+        </label>
+
+        <button id="clear-filters" class="btn ghost" data-i18n="clearFilters">
+          Clear filters
+        </button>
+
+        <hr />
+
+        <h2 data-i18n="teams">Teams</h2>
+        <div id="team-list"></div>
+        <button id="add-team-btn" class="btn primary" data-i18n="addTeam">
+          Add team
+        </button>
+      </section>
+
+      <section class="content">
+        <div class="content-header">
+          <h1 data-i18n="tasks">Tasks</h1>
+          <button id="add-task-btn" class="btn primary" data-i18n="addTask">
+            Add task
+          </button>
+        </div>
+
+        <div id="task-list" class="task-list"></div>
+      </section>
+
+      <section class="details">
+        <h2 data-i18n="taskDetails">Task details</h2>
+        <div id="task-details-empty" class="muted" data-i18n="noTaskSelected">
+          No task selected
+        </div>
+        <div id="task-details" class="task-details hidden"></div>
+      </section>
+    </main>
+
+    <!-- Modal para crear/editar tarea -->
+    <div id="task-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="task-modal-title" data-i18n="newTask">New task</h2>
+          <button id="task-modal-close" class="btn icon">✕</button>
+        </div>
+        <form id="task-form" class="modal-body">
+          <label class="field">
+            <span data-i18n="title">Title</span>
+            <input id="task-title" type="text" required />
+          </label>
+
+          <label class="field">
+            <span data-i18n="description">Description</span>
+            <textarea id="task-description" rows="3"></textarea>
+          </label>
+
+          <label class="field">
+            <span data-i18n="category">Category</span>
+            <input id="task-category" type="text" list="category-suggestions" />
+            <datalist id="category-suggestions"></datalist>
+          </label>
+
+          <label class="field">
+            <span data-i18n="status">Status</span>
+            <select id="task-status">
+              <option value="todo" data-i18n="statusTodo">To do</option>
+              <option value="in_progress" data-i18n="statusInProgress">In progress</option>
+              <option value="done" data-i18n="statusDone">Done</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span data-i18n="priority">Priority</span>
+            <select id="task-priority">
+              <option value="low" data-i18n="priorityLow">Low</option>
+              <option value="medium" data-i18n="priorityMedium">Medium</option>
+              <option value="high" data-i18n="priorityHigh">High</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span data-i18n="dueDate">Due date</span>
+            <input id="task-dueDate" type="date" />
+          </label>
+
+          <label class="field">
+            <span data-i18n="team">Team</span>
+            <select id="task-team"></select>
+          </label>
+
+          <label class="field">
+            <span data-i18n="assignee">Assignee</span>
+            <select id="task-assignee"></select>
+          </label>
+
+          <div class="modal-footer">
+            <button type="button" id="task-ai-btn" class="btn secondary" data-i18n="askAI">
+              Ask AI for subtasks
+            </button>
+            <div class="spacer"></div>
+            <button type="button" id="task-delete-btn" class="btn danger hidden" data-i18n="delete">
+              Delete
+            </button>
+            <button type="submit" class="btn primary" data-i18n="save">
+              Save
+            </button>
+          </div>
+        </form>
+
+        <div id="ai-suggestions" class="ai-suggestions hidden">
+          <h3 data-i18n="aiSuggestions">AI suggestions</h3>
+          <ul id="ai-suggestions-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para equipos -->
+    <div id="team-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-i18n="manageTeam">Manage team</h2>
+          <button id="team-modal-close" class="btn icon">✕</button>
+        </div>
+        <form id="team-form" class="modal-body">
+          <label class="field">
+            <span data-i18n="teamName">Team name</span>
+            <input id="team-name" type="text" required />
+          </label>
+
+          <label class="field">
+            <span data-i18n="members">Members (comma separated)</span>
+            <input id="team-members" type="text" />
+          </label>
+
+          <div class="modal-footer">
+            <button type="button" id="team-delete-btn" class="btn danger hidden" data-i18n="delete">
+              Delete
+            </button>
+            <button type="submit" class="btn primary" data-i18n="save">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
